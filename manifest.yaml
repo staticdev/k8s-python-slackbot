@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - env:
-         - name: SLACK_BOT_NAME
+        - name: SLACK_BOT_NAME
           valueFrom:
             configMapKeyRef:
               key: SLACK_BOT_NAME
