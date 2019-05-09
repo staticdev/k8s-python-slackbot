@@ -11,11 +11,14 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: slack-deployment
   labels:
     name: slack
-  name: slack
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      name: slack
   strategy: {}
   template:
     metadata:
