@@ -1,0 +1,41 @@
+apiVersion: v1
+data:
+  SLACK_BOT_NAME: k8s-python-slackbot
+  SLACK_BOT_TOKEN: mybot-token
+kind: ConfigMap
+metadata:
+  labels:
+    name: slackbot-config
+  name: slackbot-config
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: slack
+  name: slack
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        name: slack
+    spec:
+      containers:
+      - env:
+         - name: SLACK_BOT_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: SLACK_BOT_NAME
+              name: slackbot-config
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            configMapKeyRef:
+              key: SLACK_BOT_TOKEN
+              name: slackbot-config
+        image: staticdev/k8s-python-slackbot:0.0.1
+        name: slack
+        resources: {}
+      restartPolicy: Always
+status: {}
