@@ -24,13 +24,15 @@ if api_call.get('ok'):
         if 'name' in user and user.get('name') == SLACK_BOT_NAME:
             BOT_ID = user.get('id')
 else:
-    print("Could not reach Slack with your SLACK_BOT_TOKEN. Please check if your SLACK_BOT_TOKEN and SLACK_BOT_NAME are both correct.")
+    print('Could not reach Slack with your SLACK_BOT_TOKEN. Please check if ' +
+          'your SLACK_BOT_TOKEN and SLACK_BOT_NAME are both correct.')
     exit(1)
 
 try:
     BOT_ID
 except NameError:
-    print('Could not find bot with the name ' + SLACK_BOT_NAME + '. Please check if your SLACK_BOT_TOKEN and SLACK_BOT_NAME are both correct.')
+    print('Could not find bot with the name ' + SLACK_BOT_NAME + '. Please ' +
+          'check if your SLACK_BOT_TOKEN and SLACK_BOT_NAME are both correct.')
     exit(1)
 
 
@@ -86,9 +88,9 @@ def handle_request(message, channel, ts, user):
 
     # send messages to channel
     slack_client.api_call('chat.postMessage',
-                            channel=channel,
-                            text=unmentioned_message,
-                            as_user=True)
+                          channel=channel,
+                          text=unmentioned_message,
+                          as_user=True)
 
 
 def parse_slack_output(event_list):
@@ -112,9 +114,11 @@ if __name__ == '__main__':
     if slack_client.rtm_connect():
         print('%s connected', __file__)
         while True:
-            request, channel, ts, user = parse_slack_output(slack_client.rtm_read())
+            request, channel, ts, user = parse_slack_output(
+                slack_client.rtm_read())
             if request and channel:
-                print('slack_message:|' + str(request) + '|' + str(channel) + '|' + str(ts) + '|' + str(user) + '|')
+                print('slack_message:|' + str(request) + '|' + str(channel) +
+                      '|' + str(ts) + '|' + str(user) + '|')
                 handle_request(request, channel, ts, user)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
