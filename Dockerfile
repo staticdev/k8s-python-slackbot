@@ -1,4 +1,4 @@
-FROM python:3.7.3-alpine
+FROM python:3.7.4-alpine
 
 # Set the working directory to /app
 WORKDIR /app
@@ -7,8 +7,8 @@ WORKDIR /app
 ADD . /app
 
 # install requirements
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip \
+  && pip install -r requirements.txt
 
 # Run app.py when the container launches
 CMD ["python", "echobot.py"]
