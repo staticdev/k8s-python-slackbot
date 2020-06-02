@@ -16,19 +16,19 @@ spec:
         name: slack
     spec:
       containers:
-      - env:
-        - name: SLACK_BOT_NAME
-          valueFrom:
-            secretKeyRef:
-              key: SLACK_BOT_NAME
-              name: slackbot-secrets
-        - name: SLACK_BOT_TOKEN
-          valueFrom:
-            secretKeyRef:
-              key: SLACK_BOT_TOKEN
-              name: slackbot-secrets
-        image: staticdev/k8s-python-slackbot:0.1.0
-        name: slack
-        resources: {}
+        - env:
+            - name: SLACK_BOT_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: SLACK_BOT_NAME
+                  name: slackbot-secrets
+            - name: SLACK_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: SLACK_BOT_TOKEN
+                  name: slackbot-secrets
+          image: staticdev/k8s-python-slackbot:0.1.0
+          name: slack
+          resources: {}
       restartPolicy: Always
 status: {}
