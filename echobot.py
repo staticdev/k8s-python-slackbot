@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """Echobot using slackclient."""
-
 import os
-import time
 
-import slackclient
+import slack
 
 SLACK_BOT_NAME = os.environ.get("SLACK_BOT_NAME")
 
@@ -18,20 +16,9 @@ if SLACK_BOT_TOKEN is None:
     print("SLACK_BOT_TOKEN not set.")
     exit(1)
 
-SLACK_CLIENT = slackclient.SlackClient(SLACK_BOT_TOKEN)
-API_CALL = SLACK_CLIENT.api_call("users.list")
-if API_CALL.get("ok"):
-    # retrieve all users so we can find our bot
-    USERS = API_CALL.get("members")
-    for member in USERS:
-        if "name" in member and member.get("name") == SLACK_BOT_NAME:
-            BOT_ID = member.get("id")
-else:
-    print(
-        "Could not reach Slack with your SLACK_BOT_TOKEN. Please check if "
-        + "your SLACK_BOT_TOKEN and SLACK_BOT_NAME are both correct."
-    )
-    exit(1)
+WEB_CLIENT = slack.WebClient(token=SLACK_BOT_TOKEN)
+RES = WEB_CLIENT.auth_test()
+BOT_ID = RES["bot_id"]
 
 try:
     BOT_ID
@@ -79,18 +66,29 @@ def is_for_me(event):
     return None
 
 
-def handle_request(message_text, channel, user):
-    """Handle requests.
+def parse_slack_output(data):
+    """Returns text, channel, ts and user."""
+    return data["text"], data["channel"], data["ts"], data["user"]
 
+
+@slack.RTMClient.run_on(event="message")
+def handle_request(**payload):
+    """
         Receives requests directed at the bot and determines if they
         are valid requests. If so, then acts on the requests. If not,
         returns back what it needs for clarification.
     """
+    data = payload["data"]
+    web_client = payload["web_client"]
+    message, channel, ts, user = parse_slack_output(data)
+    print(
+        "slack_message:|%s|%s|%s|%s|" % (str(message), str(channel), str(ts), str(user))
+    )
     # removes first mention to the bot in public channels
     if not channel.startswith("D"):
-        unmentioned_message = message_text.replace(BOT_MENTION, "", 1)
+        unmentioned_message = message.replace(BOT_MENTION, "", 1)
     else:
-        unmentioned_message = message_text
+        unmentioned_message = message
     unmentioned_message = unmentioned_message.strip()
 
     # public channels
@@ -99,39 +97,11 @@ def handle_request(message_text, channel, user):
         unmentioned_message = add_mention(user_mention, unmentioned_message)
 
     # send messages to channel
-    SLACK_CLIENT.api_call(
-        "chat.postMessage", channel=channel, text=unmentioned_message, as_user=True
+    web_client.chat_postMessage(
+        channel=channel, text=unmentioned_message, thread_ts=ts, as_user=True
     )
 
 
-def parse_slack_output(event_list):
-    """
-        The Slack Real Time Messaging API is an events firehose.
-        this parsing function returns None unless a message is
-        directed at the Bot, based on its ID.
-    """
-    if event_list:
-        for event in event_list:
-            if is_for_me(event):
-                return event["text"], event["channel"], event["ts"], event["user"]
-    return None, None, None, None
-
-
 if __name__ == "__main__":
-    print("%s running", __file__)
-    READ_WEBSOCKET_DELAY = 1  # 1 second delay between reading from firehose
-    if SLACK_CLIENT.rtm_connect():
-        print("%s connected", __file__)
-        while True:
-            REQUEST, CHANNEL, TS, EVENT_USER = parse_slack_output(
-                SLACK_CLIENT.rtm_read()
-            )
-            if REQUEST and CHANNEL:
-                print(
-                    "slack_message:|%s|%s|%s|%s|"
-                    % (str(REQUEST), str(CHANNEL), str(TS), str(EVENT_USER))
-                )
-                handle_request(REQUEST, CHANNEL, EVENT_USER)
-            time.sleep(READ_WEBSOCKET_DELAY)
-    else:
-        print("Connection failed. Invalid Slack token or bot ID?")
+    print("{} running".format(__file__))
+    WEB_CLIENT.start()
