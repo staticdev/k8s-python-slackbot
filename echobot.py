@@ -1,23 +1,31 @@
 # -*- coding: utf-8 -*-
 """Echobot using slackclient."""
 import os
+import sys
+import urllib
 
 import slack
 
 SLACK_BOT_NAME = os.environ.get("SLACK_BOT_NAME")
 
 if SLACK_BOT_NAME is None:
-    print("SLACK_BOT_NAME not set.")
-    exit(1)
+    sys.exit("SLACK_BOT_NAME not set.")
 
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 
 if SLACK_BOT_TOKEN is None:
-    print("SLACK_BOT_TOKEN not set.")
-    exit(1)
+    sys.exit("SLACK_BOT_TOKEN not set.")
 
 WEB_CLIENT = slack.WebClient(token=SLACK_BOT_TOKEN)
-RES = WEB_CLIENT.auth_test()
+try:
+    RES = WEB_CLIENT.auth_test()
+except slack.errors.SlackApiError:
+    sys.exit(
+        ("Could not authenticate with SLACK_BOT_TOKEN. Please be sure it is correct.")
+    )
+except urllib.error.URLError:
+    sys.exit("Could not reach Slack. Please check your network and try again.")
+
 BOT_ID = RES["bot_id"]
 
 try:
@@ -104,4 +112,5 @@ def handle_request(**payload):
 
 if __name__ == "__main__":
     print("{} running".format(__file__))
-    WEB_CLIENT.start()
+    RTM_CLIENT = slack.RTMClient(token=SLACK_BOT_TOKEN)
+    RTM_CLIENT.start()
