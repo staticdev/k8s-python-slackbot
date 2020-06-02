@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 """Echobot using slackclient."""
+import logging
 import os
 import sys
 import urllib
 
 import slack
+
+logging.basicConfig(level=logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
+GLOBAL_STATE = {}
 
 SLACK_BOT_NAME = os.environ.get("SLACK_BOT_NAME")
 
@@ -16,36 +21,10 @@ SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 if SLACK_BOT_TOKEN is None:
     sys.exit("SLACK_BOT_TOKEN not set.")
 
-WEB_CLIENT = slack.WebClient(token=SLACK_BOT_TOKEN)
-try:
-    RES = WEB_CLIENT.auth_test()
-except slack.errors.SlackApiError:
-    sys.exit(
-        ("Could not authenticate with SLACK_BOT_TOKEN. Please be sure it is correct.")
-    )
-except urllib.error.URLError:
-    sys.exit("Could not reach Slack. Please check your network and try again.")
-
-BOT_ID = RES["bot_id"]
-
-try:
-    BOT_ID
-except NameError:
-    print(
-        "Could not find bot with the name "
-        + SLACK_BOT_NAME
-        + ". Please "
-        + "check if your SLACK_BOT_TOKEN and SLACK_BOT_NAME are both correct."
-    )
-    exit(1)
-
 
 def get_mention(user):
     """Returns users mention."""
     return "<@{user}>".format(user=user)
-
-
-BOT_MENTION = get_mention(BOT_ID)
 
 
 def add_mention(user_mention, response):
@@ -69,7 +48,7 @@ def is_for_me(event):
         if text and is_private(event):
             return True
         # in case it is not a private message check mention
-        if text and BOT_MENTION in text.strip().split():
+        if text and get_mention(BOT_ID) in text.strip().split():
             return True
     return None
 
@@ -77,6 +56,14 @@ def is_for_me(event):
 def parse_slack_output(data):
     """Returns text, channel, ts and user."""
     return data["text"], data["channel"], data["ts"], data["user"]
+
+
+@slack.RTMClient.run_on(event="open")
+def open_client(**payload):
+    web_client = payload["web_client"]
+    auth_result = web_client.auth_test()
+    GLOBAL_STATE.update({"bot_id": auth_result["bot_id"]})
+    LOGGER.info(f"cached: {GLOBAL_STATE}")
 
 
 @slack.RTMClient.run_on(event="message")
@@ -87,14 +74,17 @@ def handle_request(**payload):
         returns back what it needs for clarification.
     """
     data = payload["data"]
+    if data.get("bot_id", None) == GLOBAL_STATE["bot_id"]:
+        LOGGER.debug("Skipped as it's me")
+        return
     web_client = payload["web_client"]
     message, channel, ts, user = parse_slack_output(data)
-    print(
+    LOGGER.debug(
         "slack_message:|%s|%s|%s|%s|" % (str(message), str(channel), str(ts), str(user))
     )
     # removes first mention to the bot in public channels
     if not channel.startswith("D"):
-        unmentioned_message = message.replace(BOT_MENTION, "", 1)
+        unmentioned_message = message.replace(get_mention(BOT_ID), "", 1)
     else:
         unmentioned_message = message
     unmentioned_message = unmentioned_message.strip()
@@ -111,6 +101,6 @@ def handle_request(**payload):
 
 
 if __name__ == "__main__":
-    print("{} running".format(__file__))
+    LOGGER.info("{} running".format(__file__))
     RTM_CLIENT = slack.RTMClient(token=SLACK_BOT_TOKEN)
     RTM_CLIENT.start()
