@@ -92,15 +92,17 @@ def handle_request(**payload) -> None:
         LOGGER.debug("Skipped as it's me")
         return
     web_client = payload["web_client"]
-    message, channel, ts, user = parse_slack_output(data)
+    message_text, channel, ts, user = parse_slack_output(data)
     LOGGER.debug(
-        "slack_message:|%s|%s|%s|%s|" % (str(message), str(channel), str(ts), str(user))
+        "slack_message:|{}|{}|{}|{}|".format(
+            str(message_text), str(channel), str(ts), str(user)
+        )
     )
     # removes first mention to the bot in public channels
     if not channel.startswith("D"):
-        unmentioned_message = message.replace(get_mention(bot_id), "", 1)
+        unmentioned_message = message_text.replace(get_mention(bot_id), "", 1)
     else:
-        unmentioned_message = message
+        unmentioned_message = message_text
     unmentioned_message = unmentioned_message.strip()
 
     # public channels
