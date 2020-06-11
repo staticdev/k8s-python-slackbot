@@ -11,8 +11,8 @@ From your workspace, go to /apps/manage/custom-integrations and add Bots app. Th
 Just build the image and run with the commands:
 
 ```sh
-sudo docker build -t staticdev/k8s-python-slackbot:0.1.0 .
-sudo docker run --name k8s-python-slackbot -d -e SLACK_BOT_NAME=k8s-python-slackbot -e SLACK_BOT_TOKEN=mybot-token staticdev/k8s-python-slackbot:0.1.0
+sudo docker build -t staticdev/k8s-python-slackbot:0.1.2 .
+sudo docker run --name k8s-python-slackbot -d -e SLACK_BOT_NAME=k8s-python-slackbot -e SLACK_BOT_TOKEN=mybot-token staticdev/k8s-python-slackbot:0.1.2
 ```
 
 ## Run with Minikube
@@ -24,7 +24,7 @@ sudo docker run --name k8s-python-slackbot -d -e SLACK_BOT_NAME=k8s-python-slack
 minikube start --vm-driver=docker
 # build inside minikube
 eval $(minikube docker-env)
-docker build -t staticdev/k8s-python-slackbot:0.1.0 -f Dockerfile .
+docker build -t staticdev/k8s-python-slackbot:0.1.2 -f Dockerfile .
 ```
 
 2. Create a slackbot.properties file in .env folder with the following structure:
