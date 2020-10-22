@@ -10,7 +10,7 @@ homepage = "https://github.com/staticdev/k8s-python-slackbot"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-slackclient = "^2.9.2"
+slackclient = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 
