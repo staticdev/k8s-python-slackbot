@@ -1,6 +1,6 @@
 # k8s-python-slackbot
 
-ARCHIVED: this project will no longer be updated. If you are interested in maintaining it please contact me by creating an issue [here](https://github.com/staticdev/staticdev/issues).
+**THIS PROJECT IS BEING ARCHIVED: it will no longer be updated. If you are interested in maintaining it please contact me by creating an issue [here](https://github.com/staticdev/staticdev/issues).**
 
 ## Create a bot in Slack
 
